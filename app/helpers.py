@@ -1,5 +1,5 @@
 from app.models import UserCreatedTextMapper, SearchCriteria
-
+from app import db
 
 def get_restaurants(**kwargs):
     """
@@ -8,15 +8,14 @@ def get_restaurants(**kwargs):
     :param kwargs: user preferences in key-value manner
     :return: list of restaurants, which satisfied user preferences
     """
-    result = []
+
     search_criteria_values = get_search_criteria_values(**kwargs)
     if search_criteria_values:
         rest_ids = get_rest_ids_by_search_criteria(search_criteria_values)
         if rest_ids:
-            for id in rest_ids:
-                result.append(get_rest_info_by_rest_id(id))
+            return get_rest_info_by_rest_id(rest_ids)
 
-    return result
+    return []
 
 
 def get_search_criteria_values(**kwargs):
@@ -50,17 +49,18 @@ def get_rest_ids_by_search_criteria(**query_ids):
     Returns restaurants' ids for specified criterias
     :param query_ids: key-value user preferences, translated in
     DB-understandable language
-    :return: list (up to 5 elements) of restaurants ids
+    :return: list of restaurants ids
     """
 
-    rest_id = 1
-    return rest_id
+    # rest_ids = db.session.query(Quick_search.id_rest).filter_by(**query_ids).distinct()
+    # return [r[0] for r in rest_ids]
 
 
-def get_rest_info_by_rest_id(rest_id):
+def get_rest_info_by_rest_id(rest_ids):
     """
-    Returns rest_info for specified rest_id
-    :param rest_id: id of the restaurant
-    :return: dict with restaurant info
+    Returns list of Rest_info objects
+    :param rest_ids: list of rest_ids
+    :return: list of Rest_info objects
     """
-    pass
+    #rests = Rest_info.query.filter(Rest_info.id.in_(rest_ids))
+    #return rests
