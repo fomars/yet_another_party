@@ -1,26 +1,31 @@
 # -*- coding: utf-8 -*-
 from app import db
 
-class Attribute(db.Model):
 
+class SearchCriteria(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     text = db.Column(db.String(64), index=True)
 
-    def __repr__(self):
-        return '<Attribute {}>'.format(self.text)
+
+class SearchCriteriaValue(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    text = db.Column(db.String(64), index=True)
+    search_criteria = db.Column(db.Integer, db.ForeignKey('search_criteria.id'))
 
 
-class AttributeMapper(db.Model):
+class UserCreatedTextMapper(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
-    attribute_id = db.Column(db.Integer, db.ForeignKey('attribute.id'))
+    search_criteria = db.Column(db.Integer, db.ForeignKey('search_criteria.id'))
     text = db.Column(db.String(64), index=True)
-    attribute_value_id = db.Column(db.Integer, index=True)
-    
+    search_criteria_value = db.Column(db.Integer, db.ForeignKey(
+        'search_criteria_value.id'))
+
     def __repr__(self):
-        return '<AttributeMapper {}-{}>'.format(self.text, self.attribute_value_id)
-        
-        
+        return u'<UserCreatedTextMapper {}-{}>'.format(self.text,
+                                                       self.search_criteria_value)
+
+
 class RestInfo(db.Model):
     __tablename__ = 'rest_info'
 

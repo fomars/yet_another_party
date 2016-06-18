@@ -1,62 +1,66 @@
-def get_restaurants(user_id, city, **kwargs):
+from app.models import UserCreatedTextMapper, SearchCriteria
+
+
+def get_restaurants(**kwargs):
     """
     Main function - returns list of restaurants according to user preferences
     :param user_id: integer, user's facebook id
-    :param city: string
     :param kwargs: user preferences in key-value manner
-    :return: list (up to 5) of restaurants, which satisfied user preferences
+    :return: list of restaurants, which satisfied user preferences
     """
-    pass
+    result = []
+    search_criteria_values = get_search_criteria_values(**kwargs)
+    if search_criteria_values:
+        rest_ids = get_rest_ids_by_search_criteria(search_criteria_values)
+        if rest_ids:
+            for id in rest_ids:
+                result.append(get_rest_info_by_rest_id(id))
+
+    return result
 
 
-def get_query_ids(**kwargs):
+def get_search_criteria_values(**kwargs):
     """
-    Returns query ids for users preferences
-    :param kwargs: key-value user preferences
-    :return: dict, like {key_name: query_id}
+    Returns search criteria values for users preferences
+    :param kwargs: key-value user preferences, like: {"city": u"Moscow"}
+    :return: dict, like {"city": 1}
     """
-    pass
+    result = {}
+    for item in kwargs.items():
+        search_criteria = SearchCriteria.query.filter_by(text=item[0]).first()
+        if search_criteria:
+            uctm = UserCreatedTextMapper.query.filter_by(
+                text=item[1],
+                search_criteria=search_criteria.id).first()
+            if uctm:
+                result[item[0]] = uctm.search_criteria_value
+            else:
+                # situation, when we can't find search_criteria_value_id for
+                # the specified user query in UserCreatedTextMapper
+                # we return 0, to signalize, that we didn't search anything
+                return None
+
+        else:
+            raise Exception('Wrong search criteria: {}'.format(search_criteria))
+    return result
 
 
-def get_rest_ids_by_query_ids(**query_ids):
+def get_rest_ids_by_search_criteria(**query_ids):
     """
     Returns restaurants' ids for specified criterias
     :param query_ids: key-value user preferences, translated in
     DB-understandable language
     :return: list (up to 5 elements) of restaurants ids
     """
-    pass
-    # get query_id by text 
+
     rest_id = 1
     return rest_id
 
 
-def return_rest_info_by_rest_id(rest_id):
+def get_rest_info_by_rest_id(rest_id):
     """
     Returns rest_info for specified rest_id
     :param rest_id: id of the restaurant
     :return: dict with restaurant info
     """
     pass
-
-
-
-
-
-
-#  settings  
-
-
-def set_user_city(user_id, city):
-    """
-
-    :param user_id:
-    :param city:
-    :return:
-    """
-    pass
-
-
-def get_user_city(user_id):
-    pass
-    return '' or None
