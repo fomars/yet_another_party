@@ -7,7 +7,9 @@ app = Flask(__name__)
 app.config.from_pyfile('config.py')
 app.config.from_pyfile('config_local.py')
 db = SQLAlchemy(app)
+
 from app import views
+
 
 file_handler = RotatingFileHandler('application.log', 'w', 1 * 1024 * 1024, 10)
 file_handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'))

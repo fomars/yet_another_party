@@ -4,7 +4,7 @@ import requests
 
 from app import app
 from flask import request
-
+from models import *
 
 def received_authentication(msg_event):
     pass
