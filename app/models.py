@@ -1,6 +1,5 @@
 from app import db
 
-
 class Attribute(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
@@ -19,3 +18,4 @@ class AttributeMapper(db.Model):
 
     def __repr__(self):
         return '<AttributeMapper {}-{}>'.format(self.text, self.attribute_value_id)
+
