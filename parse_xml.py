@@ -3,16 +3,16 @@
 import os
 import re
 
-from app.models import Rest_info, Atr_city, Atr_recommend, Atr_metro, Atr_averagebill, Atr_features, Atr_types, Atr_kitchens, Quick_search 
+from app.models import RestInfo, AtrCity, AtrRecommendedFor, AtrMetro, AtrAverageBill, AtrFeatures, AtrTypes, AtrKitchens, QuickSearch 
 from app import db
 from lxml import etree
 
-#new_entry = Atr_city(text_atr='test2')
+#new_entry = AtrCity(text_atr='test2')
 #db.session.add(new_entry)
 #db.session.commit()
 
-#print Atr_city.query.all()
-#print Atr_city.query.first().id_atr
+#print AtrCity.query.all()
+#print AtrCity.query.first().id_atr
 
 XML_FILE = os.path.join(os.getcwd(), 'restaurants.xml')
 
@@ -23,8 +23,16 @@ try:
 
     print len(root)
 
+    dicAtrCity = {}
+    dicAtrRecommendedFor = {}
+    dicAtrMetro = {}
+    dicAtrAverageBill = {}
+    dicAtrFeatures = {}
+    dicAtrTypes = {}
+    dicAtrKitchens = {}
+
     for restaurant in root:
-        # for rest_info
+        # for RestInfo
         id_rest = None
         name = None
         address = None
@@ -66,8 +74,6 @@ try:
                 billMax = element.text
             if element.tag == 'description':
                 description = element.text
-                #import pdb
-                #pdb.set_trace()
                 description = description[:description.find('<script')]
             if element.tag == 'gallery':
                 try:
@@ -96,7 +102,7 @@ try:
         #import pdb
         #pdb.set_trace()
 
-        new_entry = Rest_info(id_rest=id_rest, name=name, address=address, url=url, phone=phone, latitude=latitude, longitude=longitude, billMin=billMin, billMax=billMax, description=description, photourl=photourl)
+        new_entry = RestInfo(id_rest=id_rest, name=name, address=address, url=url, phone=phone, latitude=latitude, longitude=longitude, billMin=billMin, billMax=billMax, description=description, photourl=photourl)
         db.session.add(new_entry)
         db.session.commit()
         
@@ -115,59 +121,76 @@ try:
                 
         # добавим новые элементы в таблицы сокращений имен аттрибутов
         
-        if Atr_city.query.filter(Atr_city.text_atr==city).all() == []:
-            new_entry = Atr_city(text_atr=city)
-            db.session.add(new_entry)
-            db.session.commit()    
+        if dicAtrCity.get(city) == None:
+            if AtrCity.query.filter(AtrCity.text_atr==city).all() == []:
+                new_entry = AtrCity(text_atr=city)
+                db.session.add(new_entry)
+                db.session.commit()
+                dicAtrCity.update({city:AtrCity.query.filter(AtrCity.text_atr==city).all()[0].id_atr})
+            
         
         for elementRecommendedFor in recommendedFor:
-            if Atr_recommend.query.filter(Atr_recommend.text_atr==elementRecommendedFor).all() == []:
-                new_entry = Atr_recommend(text_atr=elementRecommendedFor)
+            if dicAtrRecommendedFor.get(elementRecommendedFor) == None:
+                if AtrRecommendedFor.query.filter(AtrRecommendedFor.text_atr==elementRecommendedFor).all() == []:
+                    new_entry = AtrRecommendedFor(text_atr=elementRecommendedFor)
+                    db.session.add(new_entry)
+                    db.session.commit()
+                    dicAtrRecommendedFor.update({elementRecommendedFor:AtrRecommendedFor.query.filter(AtrRecommendedFor.text_atr==elementRecommendedFor).all()[0].id_atr})
+        
+        if dicAtrMetro.get(metro) == None:
+            if AtrMetro.query.filter(AtrMetro.text_atr==metro).all() == []:
+                new_entry = AtrMetro(text_atr=metro)
                 db.session.add(new_entry)
                 db.session.commit()
+                dicAtrMetro.update({metro:AtrMetro.query.filter(AtrMetro.text_atr==metro).all()[0].id_atr})
         
-        if Atr_metro.query.filter(Atr_metro.text_atr==metro).all() == []:
-            new_entry = Atr_metro(text_atr=metro)
-            db.session.add(new_entry)
-            db.session.commit()
-        
-        if Atr_averagebill.query.filter(Atr_averagebill.text_atr==averageBill).all() == []:
-            new_entry = Atr_averagebill(text_atr=averageBill)
-            db.session.add(new_entry)
-            db.session.commit()
+        if dicAtrAverageBill.get(averageBill) == None:
+            if AtrAverageBill.query.filter(AtrAverageBill.text_atr==averageBill).all() == []:
+                new_entry = AtrAverageBill(text_atr=averageBill)
+                db.session.add(new_entry)
+                db.session.commit()
+                dicAtrAverageBill.update({averageBill:AtrAverageBill.query.filter(AtrAverageBill.text_atr==averageBill).all()[0].id_atr})
             
         for elementFeatures in features:
-            if Atr_features.query.filter(Atr_features.text_atr==elementFeatures).all() == []:
-                new_entry = Atr_features(text_atr=elementFeatures)
-                db.session.add(new_entry)
-                db.session.commit()
+            if dicAtrFeatures.get(elementFeatures) == None:
+                if AtrFeatures.query.filter(AtrFeatures.text_atr==elementFeatures).all() == []:
+                    new_entry = AtrFeatures(text_atr=elementFeatures)
+                    db.session.add(new_entry)
+                    db.session.commit()
+                    dicAtrFeatures.update({elementFeatures:AtrFeatures.query.filter(AtrFeatures.text_atr==elementFeatures).all()[0].id_atr})
                 
         for elementTypes in types:
-            if Atr_types.query.filter(Atr_types.text_atr==elementTypes).all() == []:
-                new_entry = Atr_types(text_atr=elementTypes)
-                db.session.add(new_entry)
-                db.session.commit()
+            if dicAtrTypes.get(elementTypes) == None:
+                if AtrTypes.query.filter(AtrTypes.text_atr==elementTypes).all() == []:
+                    new_entry = AtrTypes(text_atr=elementTypes)
+                    db.session.add(new_entry)
+                    db.session.commit()
+                    dicAtrTypes.update({elementTypes:AtrTypes.query.filter(AtrTypes.text_atr==elementTypes).all()[0].id_atr})
                 
         for elementKitchens in kitchens:
-            if Atr_kitchens.query.filter(Atr_kitchens.text_atr==elementKitchens).all() == []:
-                new_entry = Atr_kitchens(text_atr=elementKitchens)
-                db.session.add(new_entry)
-                db.session.commit()
+            if dicAtrKitchens.get(elementKitchens) == None:
+                if AtrKitchens.query.filter(AtrKitchens.text_atr==elementKitchens).all() == []:
+                    new_entry = AtrKitchens(text_atr=elementKitchens)
+                    db.session.add(new_entry)
+                    db.session.commit()
+                    dicAtrKitchens.update({elementKitchens:AtrKitchens.query.filter(AtrKitchens.text_atr==elementKitchens).all()[0].id_atr})
+                
         print id_rest
+        
         for elementRecommendedFor in recommendedFor:
             for elementFeatures in features:
                 for elementTypes in types:
                     for elementKitchens in kitchens:
-                        id_atr_city = Atr_city.query.filter(Atr_city.text_atr==city).all()[0].id_atr
-                        id_atr_recommend = Atr_recommend.query.filter(Atr_recommend.text_atr==elementRecommendedFor).all()[0].id_atr
-                        id_atr_metro = Atr_metro.query.filter(Atr_metro.text_atr==metro).all()[0].id_atr
-                        id_atr_averagebill = Atr_averagebill.query.filter(Atr_averagebill.text_atr==averageBill).all()[0].id_atr
-                        id_atr_features = Atr_features.query.filter(Atr_features.text_atr==elementFeatures).all()[0].id_atr
-                        id_atr_types = Atr_types.query.filter(Atr_types.text_atr==elementTypes).all()[0].id_atr
-                        id_atr_kitchens = Atr_kitchens.query.filter(Atr_kitchens.text_atr==elementKitchens).all()[0].id_atr
-                        new_entry = Quick_search(id_rest=id_rest, id_atr_city=id_atr_city, id_atr_recommend=id_atr_recommend, id_atr_metro=id_atr_metro, id_atr_averagebill=id_atr_averagebill, id_atr_features=id_atr_features, id_atr_types=id_atr_types, id_atr_kitchens=id_atr_kitchens)
+                        id_atr_city = dicAtrCity.get(city)
+                        id_atr_recommend = dicAtrRecommendedFor.get(elementRecommendedFor)
+                        id_atr_metro = dicAtrMetro.get(metro)
+                        id_atr_averagebill = dicAtrAverageBill.get(averageBill)
+                        id_atr_features = dicAtrFeatures.get(elementFeatures)
+                        id_atr_types = dicAtrTypes.get(elementTypes)
+                        id_atr_kitchens = dicAtrKitchens.get(elementKitchens)
+                        new_entry = QuickSearch(id_rest=id_rest, id_atr_city=id_atr_city, id_atr_recommend=id_atr_recommend, id_atr_metro=id_atr_metro, id_atr_averagebill=id_atr_averagebill, id_atr_features=id_atr_features, id_atr_types=id_atr_types, id_atr_kitchens=id_atr_kitchens)
                         db.session.add(new_entry)
-                        db.session.commit()
+            db.session.commit()
                 
 except IOError as e:
     print('nERROR - cant find file: %sn' % e)

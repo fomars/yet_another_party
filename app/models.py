@@ -21,7 +21,7 @@ class AttributeMapper(db.Model):
         return '<AttributeMapper {}-{}>'.format(self.text, self.attribute_value_id)
         
         
-class Rest_info(db.Model):
+class RestInfo(db.Model):
     __tablename__ = 'rest_info'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -38,80 +38,80 @@ class Rest_info(db.Model):
     photourl = db.Column(db.String(256))
 
     def __repr__(self):
-        return u'<Rest_info: {}>'.format(self.id)
+        return u'<RestInfo: {}>'.format(self.id)
 
 
-class Atr_city(db.Model):
+class AtrCity(db.Model):
     __tablename__ = 'atr_city'
 
     id_atr = db.Column(db.Integer, primary_key=True)
     text_atr = db.Column(db.String(64), index=True)
 
     def __repr__(self):
-        return '<Atr_city {}>'.format(self.id_atr)
+        return '<AtrCity {}>'.format(self.id_atr)
 
 
-class Atr_recommend(db.Model):
+class AtrRecommendedFor(db.Model):
     __tablename__ = 'atr_recommend'
 
     id_atr = db.Column(db.Integer, primary_key=True)
     text_atr = db.Column(db.String(64), index=True)
 
     def __repr__(self):
-        return '<Atr_recommend {}>'.format(self.id_atr)
+        return '<AtrRecommendedFor {}>'.format(self.id_atr)
 
 
-class Atr_metro(db.Model):
+class AtrMetro(db.Model):
     __tablename__ = 'atr_metro'
 
     id_atr = db.Column(db.Integer, primary_key=True)
     text_atr = db.Column(db.String(64), index=True)
 
     def __repr__(self):
-        return '<Atr_metro {}>'.format(self.id_atr)
+        return '<AtrMetro {}>'.format(self.id_atr)
 
 
-class Atr_averagebill(db.Model):
+class AtrAverageBill(db.Model):
     __tablename__ = 'atr_averagebill'
 
     id_atr = db.Column(db.Integer, primary_key=True)
     text_atr = db.Column(db.String(64), index=True)
 
     def __repr__(self):
-        return '<Atr_averagebill {}>'.format(self.id_atr)
+        return '<AtrAverageBill {}>'.format(self.id_atr)
 
 
-class Atr_features(db.Model):
+class AtrFeatures(db.Model):
     __tablename__ = 'atr_features'
 
     id_atr = db.Column(db.Integer, primary_key=True)
     text_atr = db.Column(db.String(64), index=True)
 
     def __repr__(self):
-        return '<Atr_features {}>'.format(self.id_atr)
+        return '<AtrFeatures {}>'.format(self.id_atr)
 
 
-class Atr_types(db.Model):
+class AtrTypes(db.Model):
     __tablename__ = 'atr_types'
 
     id_atr = db.Column(db.Integer, primary_key=True)
     text_atr = db.Column(db.String(64), index=True)
 
     def __repr__(self):
-        return '<Atr_types {}>'.format(self.id_atr)
+        return '<AtrTypes {}>'.format(self.id_atr)
 
 
-class Atr_kitchens(db.Model):
+class AtrKitchens(db.Model):
     __tablename__ = 'atr_kitchens'
 
     id_atr = db.Column(db.Integer, primary_key=True)
     text_atr = db.Column(db.String(64), index=True)
 
     def __repr__(self):
-        return '<Atr_kitchens {}>'.format(self.id_atr)
+        return '<AtrKitchens {}>'.format(self.id_atr)
 
 
-class Quick_search(db.Model):
+class QuickSearch(db.Model):
     __tablename__ = 'quick_search'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -125,4 +125,4 @@ class Quick_search(db.Model):
     id_atr_kitchens = db.Column(db.Integer, index=True)
 
     def __repr__(self):
-        return '<Quick_search {}'.format(self.id_rest)
+        return '<QuickSearch {}'.format(self.id_rest)
