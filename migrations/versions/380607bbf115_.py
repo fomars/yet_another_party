@@ -102,7 +102,7 @@ def upgrade():
     op.create_table('user_created_text_mapper',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('search_criteria', sa.Integer(), nullable=True),
-    sa.Column('user_text', sa.String(length=4000), nullable=True),
+    sa.Column('user_text', sa.String(length=256), nullable=True),
     sa.Column('search_criteria_value', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['search_criteria'], ['search_criteria.id'], ),
     sa.ForeignKeyConstraint(['search_criteria_value'], ['search_criteria_value.id'], ),
