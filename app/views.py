@@ -10,7 +10,8 @@ from flask import request
 from app.helpers import get_restaurants
 from models import *
 
-FILTERS_SEQ = [1, 2, 3]
+FILTERS = ['city', 'purpose', 'metro', 'bill', 'features', 'type', 'cuisine']
+GREETINGS = ['choose {}'.format(f) for f in FILTERS]
 
 
 def received_authentication(msg_event):
@@ -85,8 +86,27 @@ class GenericMessageTemplate(object):
         return call_send_api(msg_data)
 
 
-def continue_session(user_id, session, message_text):
-    send_text_message(user_id, 'I know what you did there')
+def update_session(user_id, next_filter=None, **kwargs):
+    if next_filter is not None:
+        redis.hset(user_id, 'next_filter', next_filter)
+    params = {k: v for k,v in kwargs.items() if k in FILTERS}
+    if params:
+        redis.hmset(user_id, params)
+    redis.expire(user_id, app.config['EXPIRE'])
+
+
+def update_session_inc(user_id, **kwargs):
+    next_filter = int(redis.hget(user_id, 'next_filter')) + 1
+    update_session(user_id, next_filter=next_filter, **kwargs)
+
+
+def go_to_next_filter(user_id, **kwargs):
+    try:
+        next_filter = int(redis.hget(user_id, 'next_filter')) + 1
+    except TypeError:
+        next_filter = 0
+    send_text_message(user_id, GREETINGS[next_filter])
+    update_session(user_id, next_filter=next_filter, **kwargs)
 
 
 def show_results(sender_id, restaurants):
@@ -96,14 +116,23 @@ def show_results(sender_id, restaurants):
     template.send(sender_id)
 
 
+def report_nothing_found(user_id, examples):
+    send_text_message(user_id, u'К сожалению по вашему запросу ничего не найдено. \
+    Попробуйте еще раз, например: {}'.format(', '.join(examples)))
+
+
 def process_city(sender_id, message_text):
     res = get_restaurants(sender_id, city=message_text)
     ids = [r['id'] for r in res]
     if ids:
         show_results(sender_id, res)
-        redis.hmset(sender_id, {'filtered_ids': ','.join([str(i) for i in ids]),
-                                'filters_applied': '1',
-                                'next_question': 2})
+        go_to_next_filter(sender_id, city=message_text)
+    else:
+        report_nothing_found(sender_id, [u'Сочи', u'Омск'])
+
+
+def process_property(user_id, message_text):
+    send_text_message(user_id, 'Property processing there')
 
 
 def start_session(sender_id, message_text):
@@ -113,8 +142,20 @@ def start_session(sender_id, message_text):
     # else:
     #     send_text_message(sender_id, 'Say hi!')
     redis.hmset(sender_id, {'started_at': int(time.time())})
-    redis.expire(sender_id, 300)
-    return process_city(sender_id, message_text)
+    update_session(sender_id, next_filter=0)
+    # return process_city(sender_id, message_text)
+    return continue_session(sender_id, redis.hgetall(sender_id), message_text)
+
+
+def continue_session(user_id, session, message_text):
+    actions = {0: process_city,
+               1: process_property}
+    next_filter = int(session.get('next_filter', 0))
+    action = actions.get(next_filter)
+    if action:
+        return action(user_id, message_text)
+    else:
+        send_text_message(user_id, 'I know what you did there')
 
 
 def received_msg(msg_event):
