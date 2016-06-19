@@ -7,19 +7,12 @@ class SearchCriteria(db.Model):
     text = db.Column(db.String(256))
 
 
-class SearchCriteriaValue(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    text = db.Column(db.String(256))
-    search_criteria = db.Column(db.Integer, db.ForeignKey('search_criteria.id'))
-
-
 class UserCreatedTextMapper(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     search_criteria = db.Column(db.Integer, db.ForeignKey('search_criteria.id'))
     user_text = db.Column(db.String(256), index=True)
-    search_criteria_value = db.Column(db.Integer, db.ForeignKey(
-        'search_criteria_value.id'))
+    search_criteria_value = db.Column(db.Integer)
 
 
 class RestInfo(db.Model):
