@@ -6,7 +6,7 @@ import csv
 from app import app, db
 from flask import Flask, session
 
-from app.helpers import get_restaurants
+from app.helpers import get_restaurants, book_a_table
 from app.models import UserCreatedTextMapper, SearchCriteria, \
     SearchCriteriaValue
 
@@ -48,6 +48,17 @@ def populate_db_from_google_docs(filename):
 @manager.command
 def test():
     result = get_restaurants(city=u'Масква')
+
+@manager.command
+def book():
+    data = vremia = 1468318600
+    params = (3571, data,
+              vremia,
+              2, 'fhdjf', 'fdfd',
+              'sava@mail.ru', '+79260732534',
+              'NO')
+    book_a_table(*params)
+
 
 if __name__ == "__main__":
     manager.run()
