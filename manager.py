@@ -62,12 +62,10 @@ def test():
 
 @manager.command
 def book():
-    data = vremia = 1468318600
+    data = vremia = 1468319854
     params = (3571, data,
               vremia,
-              2, 'fhdjf', 'fdfd',
-              'sava@mail.ru', '+79260732534',
-              'NO')
+              4, 'fhdjf', '+79270732534')
     book_a_table(*params)
 
 
