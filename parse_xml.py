@@ -195,7 +195,7 @@ try:
                                                 bill=id_atr_averagebill,
                                                 features=id_atr_features,
                                                 type=id_atr_types,
-                                                kitchen=id_atr_kitchens)
+                                                cuisine=id_atr_kitchens)
                         db.session.add(new_entry)
             db.session.commit()
                 

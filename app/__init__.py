@@ -2,7 +2,6 @@ from flask import Flask
 import logging
 from logging.handlers import RotatingFileHandler
 
-from flask.ext.sessions import Session
 from flask_sqlalchemy import SQLAlchemy
 from redis.client import StrictRedis
 
@@ -10,8 +9,6 @@ app = Flask(__name__)
 app.config.from_pyfile('config.py')
 app.config.from_pyfile('config_local.py')
 db = SQLAlchemy(app)
-sess = Session(app)
-sess.init_app(app)
 
 redis = StrictRedis()
 from app import views

@@ -10,7 +10,7 @@ from app.models import UserCreatedTextMapper, SearchCriteria, QuickSearch, \
 from app import db
 
 
-def get_restaurants(**kwargs):
+def get_restaurants(user_id, **kwargs):
     """
     Main function - returns list of restaurants according to user preferences
     :param user_id: integer, user's facebook id
@@ -45,7 +45,8 @@ def get_search_criteria_values(**kwargs):
             else:
                 return None
         else:
-            raise Exception('Wrong search criteria: {}'.format(search_criteria))
+            app.logger.error('Wrong search criteria: {}'.format(search_criteria))
+            return None
     return result
 
 
@@ -78,8 +79,8 @@ def book_a_table(rest_id, date, time, persons, firstName, lastName, email,
     """
     Books a table via leclick.ru get-request
     :param rest_id: integer - id of the restaurant
-    :param date:  timestamp of booking date
-    :param time:  timestamp of booking time (might be the same as date)
+    :param date:  integer - timestamp of booking date
+    :param time:  integer - timestamp of booking time (might be the same as date)
     :param persons: integer - number of persons
     :param firstName: string - person's name
     :param lastName: string - persons's last_name
