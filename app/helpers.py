@@ -74,8 +74,7 @@ def get_rest_info_by_rest_id(rest_ids):
     return rests
 
 
-def book_a_table(rest_id, date, time, persons, firstName, lastName, email,
-                 phone, wishes='No'):
+def book_a_table(rest_id, date, time, persons, firstName, phone, lastName='', email='', wishes=''):
     """
     Books a table via leclick.ru get-request
     :param rest_id: integer - id of the restaurant
