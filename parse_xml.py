@@ -3,7 +3,8 @@
 import os
 import re
 
-from app.models import RestInfo, AtrCity, AtrRecommendedFor, AtrMetro, AtrAverageBill, AtrFeatures, AtrTypes, AtrKitchens, QuickSearch 
+from app.models import RestInfo, AtrCity, AtrPurpose, AtrMetro, AtrBill, \
+    AtrFeatures, AtrTypes, AtrCuisine, QuickSearch
 from app import db
 from lxml import etree
 
@@ -131,11 +132,11 @@ try:
         
         for elementRecommendedFor in recommendedFor:
             if dicAtrRecommendedFor.get(elementRecommendedFor) == None:
-                if AtrRecommendedFor.query.filter(AtrRecommendedFor.text_atr==elementRecommendedFor).all() == []:
-                    new_entry = AtrRecommendedFor(text_atr=elementRecommendedFor)
+                if AtrPurpose.query.filter(AtrPurpose.text_atr==elementRecommendedFor).all() == []:
+                    new_entry = AtrPurpose(text_atr=elementRecommendedFor)
                     db.session.add(new_entry)
                     db.session.commit()
-                    dicAtrRecommendedFor.update({elementRecommendedFor:AtrRecommendedFor.query.filter(AtrRecommendedFor.text_atr==elementRecommendedFor).all()[0].id_atr})
+                    dicAtrRecommendedFor.update({elementRecommendedFor:AtrPurpose.query.filter(AtrPurpose.text_atr==elementRecommendedFor).all()[0].id_atr})
         
         if dicAtrMetro.get(metro) == None:
             if AtrMetro.query.filter(AtrMetro.text_atr==metro).all() == []:
@@ -145,11 +146,11 @@ try:
                 dicAtrMetro.update({metro:AtrMetro.query.filter(AtrMetro.text_atr==metro).all()[0].id_atr})
         
         if dicAtrAverageBill.get(averageBill) == None:
-            if AtrAverageBill.query.filter(AtrAverageBill.text_atr==averageBill).all() == []:
-                new_entry = AtrAverageBill(text_atr=averageBill)
+            if AtrBill.query.filter(AtrBill.text_atr==averageBill).all() == []:
+                new_entry = AtrBill(text_atr=averageBill)
                 db.session.add(new_entry)
                 db.session.commit()
-                dicAtrAverageBill.update({averageBill:AtrAverageBill.query.filter(AtrAverageBill.text_atr==averageBill).all()[0].id_atr})
+                dicAtrAverageBill.update({averageBill:AtrBill.query.filter(AtrBill.text_atr==averageBill).all()[0].id_atr})
             
         for elementFeatures in features:
             if dicAtrFeatures.get(elementFeatures) == None:
@@ -169,11 +170,11 @@ try:
                 
         for elementKitchens in kitchens:
             if dicAtrKitchens.get(elementKitchens) == None:
-                if AtrKitchens.query.filter(AtrKitchens.text_atr==elementKitchens).all() == []:
-                    new_entry = AtrKitchens(text_atr=elementKitchens)
+                if AtrCuisine.query.filter(AtrCuisine.text_atr==elementKitchens).all() == []:
+                    new_entry = AtrCuisine(text_atr=elementKitchens)
                     db.session.add(new_entry)
                     db.session.commit()
-                    dicAtrKitchens.update({elementKitchens:AtrKitchens.query.filter(AtrKitchens.text_atr==elementKitchens).all()[0].id_atr})
+                    dicAtrKitchens.update({elementKitchens:AtrCuisine.query.filter(AtrCuisine.text_atr==elementKitchens).all()[0].id_atr})
                 
         print id_rest
         

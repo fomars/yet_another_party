@@ -45,14 +45,11 @@ class AtrCity(db.Model):
         return '<AtrCity {}>'.format(self.id_atr)
 
 
-class AtrRecommendedFor(db.Model):
-    __tablename__ = 'atr_recommend'
+class AtrPurpose(db.Model):
+    __tablename__ = 'atr_purpose'
 
     id_atr = db.Column(db.Integer, primary_key=True)
     text_atr = db.Column(db.String(256))
-
-    def __repr__(self):
-        return '<AtrRecommendedFor {}>'.format(self.id_atr)
 
 
 class AtrMetro(db.Model):
@@ -65,14 +62,11 @@ class AtrMetro(db.Model):
         return '<AtrMetro {}>'.format(self.id_atr)
 
 
-class AtrAverageBill(db.Model):
-    __tablename__ = 'atr_averagebill'
+class AtrBill(db.Model):
+    __tablename__ = 'atr_bill'
 
     id_atr = db.Column(db.Integer, primary_key=True)
     text_atr = db.Column(db.String(256))
-
-    def __repr__(self):
-        return '<AtrAverageBill {}>'.format(self.id_atr)
 
 
 class AtrFeatures(db.Model):
@@ -95,14 +89,11 @@ class AtrTypes(db.Model):
         return '<AtrTypes {}>'.format(self.id_atr)
 
 
-class AtrKitchens(db.Model):
-    __tablename__ = 'atr_kitchens'
+class AtrCuisine(db.Model):
+    __tablename__ = 'atr_cuisine'
 
     id_atr = db.Column(db.Integer, primary_key=True)
     text_atr = db.Column(db.String(256))
-
-    def __repr__(self):
-        return '<AtrKitchens {}>'.format(self.id_atr)
 
 
 class QuickSearch(db.Model):
@@ -111,12 +102,12 @@ class QuickSearch(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     id_rest = db.Column(db.Integer, db.ForeignKey('rest_info.id_rest'))
     city = db.Column(db.Integer, db.ForeignKey('atr_city.id_atr'))
-    purpose = db.Column(db.Integer, db.ForeignKey('atr_recommend.id_atr'))
+    purpose = db.Column(db.Integer, db.ForeignKey('atr_purpose.id_atr'))
     metro = db.Column(db.Integer, db.ForeignKey('atr_metro.id_atr'))
-    bill = db.Column(db.Integer, db.ForeignKey('atr_averagebill.id_atr'))
+    bill = db.Column(db.Integer, db.ForeignKey('atr_bill.id_atr'))
     features = db.Column(db.Integer, db.ForeignKey('atr_features.id_atr'))
     type = db.Column(db.Integer, db.ForeignKey('atr_types.id_atr'))
-    cuisine = db.Column(db.Integer, db.ForeignKey('atr_kitchens.id_atr'))
+    cuisine = db.Column(db.Integer, db.ForeignKey('atr_cuisine.id_atr'))
 
     def __repr__(self):
         return '<QuickSearch {}'.format(self.id_rest)
