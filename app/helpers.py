@@ -3,11 +3,10 @@ import re
 import requests
 from requests.exceptions import HTTPError
 
-import app
 from app.config import BOOKING_URL
 from app.models import UserCreatedTextMapper, SearchCriteria, QuickSearch, \
     RestInfo
-from app import db
+from app import db, app
 
 
 def get_restaurants(user_id, **kwargs):
@@ -15,7 +14,7 @@ def get_restaurants(user_id, **kwargs):
     Main function - returns list of restaurants according to user preferences
     :param user_id: integer, user's facebook id
     :param kwargs: user preferences in key-value manner
-    :return: list of restaurants, which satisfied user preferences
+    :return: list[RestInfo] of restaurants, which satisfied user preferences
     """
     search_criteria_values = get_search_criteria_values(**kwargs)
     if search_criteria_values:
@@ -69,12 +68,12 @@ def get_rest_info_by_rest_id(rest_ids):
     :param rest_ids: list of rest_ids
     :return: list of RestInfo objects
     """
-    rests = RestInfo.query.filter(RestInfo.id.in_(rest_ids)).all()
+    rests = RestInfo.query.filter(RestInfo.id_rest.in_(rest_ids)).all()
     print "Rests: {}".format(rests)
     return rests
 
 
-def book_a_table(rest_id, date, time, persons, firstName, phone, lastName='', email='', wishes=''):
+def book_a_table(rest_id, time, persons, firstName, phone, date='', lastName='', email='', wishes=''):
     """
     Books a table via leclick.ru get-request
     :param rest_id: integer - id of the restaurant

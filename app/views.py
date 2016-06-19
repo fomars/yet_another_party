@@ -1,17 +1,34 @@
 # coding=utf-8
 import json
 
+import datetime
 import requests
 import time
 
 from app import app, redis
 from flask import request
 
-from app.helpers import get_restaurants
+from app.helpers import get_restaurants, book_a_table
 from models import *
 
-FILTERS = ['city', 'purpose', 'metro', 'bill', 'features', 'type', 'cuisine']
+FILTERS = ['city', 'purpose', 'metro', 'bill', 'features', 'cuisine']
+EXAMPLES = [[u'Москва', u'Сочи', u'Санкт-Петербург'],
+            [u'весело напиться', u'поужинать с девушкой', u'деловой обед', u'деловой ужин'],
+            [u'Чеховская', u'Пушкинская'],
+            [u'пятихат', u'тысяча', u'тыща', u'недорого'],
+            [u'wifi', u'веранда', u'на набережной', u'с детьми', u'парковка', u'баркас'],
+            [u'грузинская', u'русская' u'украинская']]
 GREETINGS = ['choose {}'.format(f) for f in FILTERS]
+
+PROMPTS = [{'name': 'time', 'formatter': lambda s: int(
+    (datetime.datetime.strptime('2016 ' + s, '%Y %d.%m %H:%M') - datetime.datetime(1970, 1, 1)).total_seconds())},
+           {'name': 'firstName', 'formatter': lambda s: unicode(s)},
+           {'name': 'persons', 'formatter': lambda s: int(s)},
+           {'name': 'phone', 'formatter': lambda s: unicode(s)}]
+PROMPT_GREETINGS = ['enter datetime DD.mm HH:MM',
+                    'enter your name',
+                    'enter the number of persons',
+                    'enter your phone']
 
 
 def received_authentication(msg_event):
@@ -39,7 +56,6 @@ def send_text_message(recipient_id, text):
 
 
 class PostbackButton(object):
-
     def __init__(self, title, payload):
         self.title = title
         self.payload = payload
@@ -51,7 +67,7 @@ class PostbackButton(object):
 
 
 class Element(object):
-    def __init__(self, title, url=None, image_url=None, subtitle=None, buttons=None):
+    def __init__(self, title, image_url=None, subtitle=None, buttons=None):
         self.title = title
         self.image_url = image_url
         self.subtitle = subtitle
@@ -89,7 +105,7 @@ class GenericMessageTemplate(object):
 def update_session(user_id, next_filter=None, **kwargs):
     if next_filter is not None:
         redis.hset(user_id, 'next_filter', next_filter)
-    params = {k: v for k,v in kwargs.items() if k in FILTERS}
+    params = {k: v for k, v in kwargs.items() if k in FILTERS}
     if params:
         redis.hmset(user_id, params)
     redis.expire(user_id, app.config['EXPIRE'])
@@ -110,7 +126,13 @@ def go_to_next_filter(user_id, **kwargs):
 
 
 def show_results(sender_id, restaurants):
-    bubbles = [Element(r['name'], buttons=[PostbackButton(u'забронировать', 'book {}'.format(r['id']))]) for r in
+    """
+
+    :type restaurants: list[RestInfo]
+    """
+    bubbles = [Element(r.name,
+                       image_url=r.photourl,
+                       buttons=[PostbackButton(u'забронировать', '{}'.format(r.id_rest))]) for r in
                restaurants]
     template = GenericMessageTemplate(bubbles)
     template.send(sender_id)
@@ -119,6 +141,19 @@ def show_results(sender_id, restaurants):
 def report_nothing_found(user_id, examples):
     send_text_message(user_id, u'К сожалению по вашему запросу ничего не найдено. \
     Попробуйте еще раз, например: {}'.format(', '.join(examples)))
+
+
+def process_filter(filter_id, user_id, message_text):
+    try:
+        f = FILTERS[filter_id]
+    except IndexError:
+        send_text_message(user_id, 'I know what you did there')
+    res = get_restaurants(user_id, **{f: message_text})
+    if res:
+        show_results(user_id, res[0:5])
+        go_to_next_filter(user_id, f=message_text)
+    else:
+        report_nothing_found(user_id, EXAMPLES[filter_id])
 
 
 def process_city(sender_id, message_text):
@@ -136,26 +171,38 @@ def process_property(user_id, message_text):
 
 
 def start_session(sender_id, message_text):
-    # if 'hi' in message_text.lower():
-    #     redis.set(sender_id, {'started_at': int(time.time())})
-    #     send_text_message(sender_id, 'Hi! Nice to meet you!')
-    # else:
-    #     send_text_message(sender_id, 'Say hi!')
     redis.hmset(sender_id, {'started_at': int(time.time())})
     update_session(sender_id, next_filter=0)
-    # return process_city(sender_id, message_text)
     return continue_session(sender_id, redis.hgetall(sender_id), message_text)
 
 
+def process_prompt(next_prompt, user_id, message_text):
+    if next_prompt < len(PROMPTS):
+        prompt = PROMPTS[next_prompt]
+        value = prompt['formatter'](message_text)
+        redis.hset(user_id, prompt['name'], value)
+        redis.hset(user_id, 'next_prompt', next_prompt+1)
+        redis.expire(user_id, app.config['EXPIRE'])
+        if next_prompt < len(PROMPTS):
+            send_text_message(user_id, PROMPT_GREETINGS[next_prompt+1])
+        return
+
+    res = book_a_table(redis.hget(user_id, 'id_rest'),
+                 redis.hget(user_id, 'time'),
+                 redis.hget(user_id, 'persons'),
+                 redis.hget(user_id, 'firstName'),
+                 redis.hget(user_id, 'phone'))
+    send_text_message(user_id, str(res))
+
+
 def continue_session(user_id, session, message_text):
-    actions = {0: process_city,
-               1: process_property}
-    next_filter = int(session.get('next_filter', 0))
-    action = actions.get(next_filter)
-    if action:
-        return action(user_id, message_text)
+    ready = session.get('ready')
+    if ready:
+        next_prompt = int(session.get('next_prompt', 0))
+        return process_prompt(next_prompt, user_id, message_text)
     else:
-        send_text_message(user_id, 'I know what you did there')
+        next_filter = int(session.get('next_filter', 0))
+        return process_filter(next_filter, user_id, message_text)
 
 
 def received_msg(msg_event):
@@ -179,7 +226,32 @@ def recieved_delivery_confirmation(msg_event):
     pass
 
 
+def prompt_user(user_id, session):
+    pass
+
+
+def start_prompt_user(sender_id, id_rest):
+    redis.hset(sender_id, 'next_prompt', 0)
+    redis.hset(sender_id, 'ready', 1)
+    redis.hset(sender_id, 'id_rest', id_rest)
+    redis.expire(sender_id, app.config['EXPIRE'])
+    send_text_message(sender_id, PROMPT_GREETINGS[0])
+
+
 def received_postback(msg_event):
+    """
+
+    :param msg_event:
+    :return:
+    """
+    sender_id = msg_event['sender']['id']
+    recipient_id = msg_event['recipient']['id']
+    timestamp = msg_event['timestamp']
+    postback = msg_event['postback']
+
+    if 'payload' in postback:
+        id_rest = int(postback['payload'])
+        start_prompt_user(sender_id, id_rest)
     pass
 
 
@@ -194,10 +266,10 @@ def webhook():
     if request.method == 'POST' and request.json['object'] == 'page':
         data = request.json
         # app.process_response(app.make_response('ok'))
-        for entry in data['entry']:
+        for entry in data['entry'][0:3]:
             page_id = entry['id']
             time_of_event = entry['time']
-            for msg_event in entry['messaging']:
+            for msg_event in entry['messaging'][0:3]:
                 if msg_event.get('optin'):
                     received_authentication(msg_event)
                 elif msg_event.get('message'):
@@ -207,7 +279,9 @@ def webhook():
                 elif msg_event.get('delivery'):
                     recieved_delivery_confirmation(msg_event)
                 elif msg_event.get('postback'):
+
                     received_postback(msg_event)
+
                 else:
                     print('Webhook received unknown messaging event: {}'.format(msg_event))
         return 'ok'

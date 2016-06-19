@@ -15,11 +15,12 @@ from lxml import etree
 #print AtrCity.query.all()
 #print AtrCity.query.first().id_atr
 
-XML_FILE = os.path.join(os.getcwd(), 'restaurants.xml')
+# XML_FILE = os.path.join(os.getcwd(), 'restaurants.xml')
 
 try:
     parser = etree.XMLParser(recover=True)
-    tree = etree.parse(XML_FILE, parser=parser)
+    # tree = etree.parse(XML_FILE, parser=parser)
+    tree = etree.parse('/home/arseniy/Downloads/restaurants.xml', parser=parser)
     root = tree.getroot()
 
     print len(root)

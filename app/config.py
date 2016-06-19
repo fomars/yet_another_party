@@ -10,6 +10,6 @@ SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 
 #redis
-EXPIRE = 30
+EXPIRE = 200
 
-BOOKING_URL = "http://leclick.ru/booking/add/restaurantId/{rest_id}/creator/partner/partner/telegramBot/params/?date={date}&time={time}&persons={persons}&wishes={wishes}&firstName={firstName}&lastName={lastName}&email={email}&fullPhone={phone}"
+BOOKING_URL = "http://leclick.myterranet.com/booking/add/restaurantId/{rest_id}/creator/partner/partner/telegramBot/params/?date={date}&time={time}&persons={persons}&wishes={wishes}&firstName={firstName}&lastName={lastName}&email={email}&fullPhone={phone}"
