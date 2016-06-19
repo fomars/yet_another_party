@@ -1,5 +1,4 @@
-# coding=utf-8
-
+# -*- coding: utf-8 -*
 from flask_script import Manager
 from flask_migrate import Migrate, MigrateCommand
 
@@ -7,7 +6,7 @@ import csv
 from app import app, db
 from flask import Flask, session
 
-from app.helpers import get_search_criteria_values
+from app.helpers import get_restaurants
 from app.models import UserCreatedTextMapper, SearchCriteria, \
     SearchCriteriaValue
 
@@ -39,7 +38,7 @@ def populate_db_from_google_docs(filename):
             search_criteria_value_id = SearchCriteriaValue.query.filter_by(
                 text=row[1].decode('utf-8')).first()
             uctm = UserCreatedTextMapper(search_criteria=search_criteria_id.id,
-                                         text=row[0].decode('utf-8'),
+                                         user_text=row[0].decode('utf-8'),
                                          search_criteria_value=search_criteria_value_id
                                          )
             db.session.add(uctm)
@@ -48,7 +47,7 @@ def populate_db_from_google_docs(filename):
 
 @manager.command
 def test():
-    result = get_search_criteria_values(city=u'Маfсква')
+    result = get_restaurants(city=u'Масква')
 
 if __name__ == "__main__":
     manager.run()
