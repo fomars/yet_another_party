@@ -21,7 +21,7 @@ manager.add_command('db', MigrateCommand)
 @manager.command
 def populate_db_from_google_docs(filename):
 
-    with open(filename, mode='rb') as csvfile:
+    with open(filename, 'rb') as csvfile:
         search_criteria = filename.split('.')
 
         search_criteria_id = SearchCriteria.query.filter_by(
@@ -42,13 +42,12 @@ def populate_db_from_google_docs(filename):
                 search_criteria[0], row[1].decode('utf-8'))
             result = db.engine.execute(sql)
             ids = []
-            for row in result:
-                ids.append(row[0])
+            for r in result:
+                ids.append(r[0])
 
             if not ids:
                 print 'Wrong search criteria value: {}'.format(row[1])
                 continue
-
             uctm = UserCreatedTextMapper(search_criteria=search_criteria_id.id,
                                              user_text=row[0].decode('utf-8'),
                                              search_criteria_value=ids[0]
