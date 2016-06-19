@@ -47,7 +47,7 @@ def populate_db_from_google_docs(filename):
 
 @manager.command
 def test():
-    result = get_restaurants(city=u'Масква')
+    result = get_restaurants(user_id=1, city=u'Масква')
 
 @manager.command
 def book():
