@@ -188,7 +188,14 @@ try:
                         id_atr_features = dicAtrFeatures.get(elementFeatures)
                         id_atr_types = dicAtrTypes.get(elementTypes)
                         id_atr_kitchens = dicAtrKitchens.get(elementKitchens)
-                        new_entry = QuickSearch(id_rest=id_rest, id_atr_city=id_atr_city, id_atr_recommend=id_atr_recommend, id_atr_metro=id_atr_metro, id_atr_averagebill=id_atr_averagebill, id_atr_features=id_atr_features, id_atr_types=id_atr_types, id_atr_kitchens=id_atr_kitchens)
+                        new_entry = QuickSearch(id_rest=id_rest,
+                                                city=id_atr_city,
+                                                purpose=id_atr_recommend,
+                                                metro=id_atr_metro,
+                                                bill=id_atr_averagebill,
+                                                features=id_atr_features,
+                                                type=id_atr_types,
+                                                cuisine=id_atr_kitchens)
                         db.session.add(new_entry)
             db.session.commit()
                 

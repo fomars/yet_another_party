@@ -1,6 +1,7 @@
 from flask import Flask
 import logging
 from logging.handlers import RotatingFileHandler
+
 from flask_sqlalchemy import SQLAlchemy
 from redis.client import StrictRedis
 

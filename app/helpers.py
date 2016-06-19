@@ -1,62 +1,115 @@
-def get_restaurants(user_id, city, **kwargs):
+# -*- coding: utf-8 -*
+import re
+import requests
+from requests.exceptions import HTTPError
+
+import app
+from app.config import BOOKING_URL
+from app.models import UserCreatedTextMapper, SearchCriteria, QuickSearch, \
+    RestInfo
+from app import db
+
+
+def get_restaurants(user_id, **kwargs):
     """
     Main function - returns list of restaurants according to user preferences
     :param user_id: integer, user's facebook id
-    :param city: string
     :param kwargs: user preferences in key-value manner
-    :return: list (up to 5) of restaurants, which satisfied user preferences
+    :return: list of restaurants, which satisfied user preferences
     """
-    pass
+    search_criteria_values = get_search_criteria_values(**kwargs)
+    if search_criteria_values:
+        rest_ids = get_rest_ids_by_search_criteria(**search_criteria_values)
+        if rest_ids:
+            return get_rest_info_by_rest_id(rest_ids)
+
+    print 'There was nothing found'
+    return []
 
 
-def get_query_ids(**kwargs):
+def get_search_criteria_values(**kwargs):
     """
-    Returns query ids for users preferences
-    :param kwargs: key-value user preferences
-    :return: dict, like {key_name: query_id}
+    Returns search criteria values for users preferences
+    :param kwargs: key-value user preferences, like: {"city": u"Moscow"}
+    :return: dict, like {"city": 1}
     """
-    pass
+    result = {}
+    for item in kwargs.items():
+        search_criteria = SearchCriteria.query.filter_by(text=item[0]).first()
+        if search_criteria:
+            uctm = UserCreatedTextMapper.query.filter_by(
+                user_text=item[1],
+                search_criteria=search_criteria.id).first()
+            if uctm:
+                result[item[0]] = uctm.search_criteria_value
+            else:
+                return None
+        else:
+            app.logger.error('Wrong search criteria: {}'.format(search_criteria))
+            return None
+    return result
 
 
-def get_rest_ids_by_query_ids(**query_ids):
+def get_rest_ids_by_search_criteria(**kwargs):
     """
     Returns restaurants' ids for specified criterias
     :param query_ids: key-value user preferences, translated in
     DB-understandable language
-    :return: list (up to 5 elements) of restaurants ids
-    """
-    pass
-    # get query_id by text 
-    rest_id = 1
-    return rest_id
-
-
-def return_rest_info_by_rest_id(rest_id):
-    """
-    Returns rest_info for specified rest_id
-    :param rest_id: id of the restaurant
-    :return: dict with restaurant info
-    """
-    pass
-
-
-
-
-
-
-#  settings  
-
-
-def set_user_city(user_id, city):
+    :return: list of restaurants ids
     """
 
-    :param user_id:
-    :param city:
-    :return:
+    rest_ids = db.session.query(QuickSearch.id_rest).filter_by(
+        **kwargs).distinct()
+    return [r[0] for r in rest_ids]
+
+
+def get_rest_info_by_rest_id(rest_ids):
     """
-    pass
+    Returns list of RestInfo objects
+    :param rest_ids: list of rest_ids
+    :return: list of RestInfo objects
+    """
+    rests = RestInfo.query.filter(RestInfo.id.in_(rest_ids)).all()
+    print "Rests: {}".format(rests)
+    return rests
 
 
-def get_user_city(user_id):
-    pass
-    return '' or None
+def book_a_table(rest_id, date, time, persons, firstName, lastName, email,
+                 phone, wishes='No'):
+    """
+    Books a table via leclick.ru get-request
+    :param rest_id: integer - id of the restaurant
+    :param date:  integer - timestamp of booking date
+    :param time:  integer - timestamp of booking time (might be the same as date)
+    :param persons: integer - number of persons
+    :param firstName: string - person's name
+    :param lastName: string - persons's last_name
+    :param email: string - person's email
+    :param phone: string - persons's phone (not in a strict format)
+    :param wishes: string - person's special wishes for the booking
+    :return: tuple (success, booking_id) -
+    """
+    url = BOOKING_URL.format(rest_id=rest_id, date=date, time=time,
+                             persons=persons, firstName=firstName,
+                             lastName=lastName, email=email, phone=phone,
+                             wishes=wishes)
+
+    try:
+        response = requests.get(url)
+        data = response.text
+        if response.status_code == 200:
+            if 'success' in data:
+                error_text = re.search(r'"id":"(\d+)","', data)
+                if error_text.groups():
+                    print 'Success: {}'.format(error_text.group(1))
+                    return False, error_text.group(1)
+            elif 'error' in data:
+                error_text = re.search(r'"message":"(.*)","', data)
+                if error_text.groups():
+                    print 'Error: {}'.format(error_text.group(1))
+                    return False, error_text.group(1)
+
+    except HTTPError as err:
+        app.logger.error('HttpError while booking: {}'.format(err))
+
+
