@@ -3,6 +3,7 @@ from flask_script import Manager
 from flask_migrate import Migrate, MigrateCommand
 
 import csv
+
 from app import app, db
 from flask import Flask, session
 
@@ -26,21 +27,26 @@ def populate_db_from_google_docs(filename):
 
         search_criteria_id = SearchCriteria.query.filter_by(
             text=search_criteria[0]).first()
+        if not search_criteria_id:
+            raise Exception('Change filename to the proper search_criteria')
 
         spamreader = csv.reader(csvfile, delimiter=',')
         for i, row in enumerate(spamreader):
             if i == 0:
                 continue
             print ', '.join(row)
-            import pdb
-            pdb.set_trace()
 
             search_criteria_value_id = SearchCriteriaValue.query.filter_by(
                 text=row[1].decode('utf-8')).first()
+
+            if not search_criteria_value_id:
+                print 'Wrong search criteria value: {}'.format(row[1])
+                continue
+
             uctm = UserCreatedTextMapper(search_criteria=search_criteria_id.id,
-                                         user_text=row[0].decode('utf-8'),
-                                         search_criteria_value=search_criteria_value_id
-                                         )
+                                             user_text=row[0].decode('utf-8'),
+                                             search_criteria_value=search_criteria_value_id.id
+                                             )
             db.session.add(uctm)
             db.session.commit()
 
