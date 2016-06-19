@@ -8,8 +8,7 @@ from app import app, db
 from flask import Flask, session
 
 from app.helpers import get_restaurants, book_a_table
-from app.models import UserCreatedTextMapper, SearchCriteria, \
-    SearchCriteriaValue
+from app.models import UserCreatedTextMapper, SearchCriteria
 
 __author__ = 'arseniy.fomchenko'
 
@@ -22,7 +21,7 @@ manager.add_command('db', MigrateCommand)
 @manager.command
 def populate_db_from_google_docs(filename):
 
-    with open(filename, 'rb') as csvfile:
+    with open(filename, mode='rb') as csvfile:
         search_criteria = filename.split('.')
 
         search_criteria_id = SearchCriteria.query.filter_by(
@@ -36,16 +35,23 @@ def populate_db_from_google_docs(filename):
                 continue
             print ', '.join(row)
 
-            search_criteria_value_id = SearchCriteriaValue.query.filter_by(
-                text=row[1].decode('utf-8')).first()
+            # search_criteria_value_id = SearchCriteriaValue.query.filter_by(
+            #     text=row[1].decode('utf-8')).first()
 
-            if not search_criteria_value_id:
+            sql = u"select id_atr from atr_{} where text_atr='{}' limit 1;".format(
+                search_criteria[0], row[1].decode('utf-8'))
+            result = db.engine.execute(sql)
+            ids = []
+            for row in result:
+                ids.append(row[0])
+
+            if not ids:
                 print 'Wrong search criteria value: {}'.format(row[1])
                 continue
 
             uctm = UserCreatedTextMapper(search_criteria=search_criteria_id.id,
                                              user_text=row[0].decode('utf-8'),
-                                             search_criteria_value=search_criteria_value_id.id
+                                             search_criteria_value=ids[0]
                                              )
             db.session.add(uctm)
             db.session.commit()
